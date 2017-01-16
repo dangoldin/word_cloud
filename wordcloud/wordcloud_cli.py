@@ -62,8 +62,10 @@ def parse_args(arguments):
 
     if args.texturl:
         response = urllib2.urlopen(args.texturl)
-        html = response.read()
-        args.text = re.sub('<[^<]+?>', '', html)
+        html = response.read().replace('\n', ' ')
+        no_script_html = re.sub('<script.+?/script>', ' ', html)
+        no_style_html = re.sub('<style.+?/style>', ' ', no_script_html)
+        args.text = re.sub('<[^<]+?>', '', no_style_html)
     else:
         with args.text:
             args.text = args.text.read()
