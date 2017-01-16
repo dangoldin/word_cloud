@@ -11,6 +11,8 @@ import wordcloud as wc
 import numpy as np
 import sys
 from PIL import Image
+import urllib2
+import re
 
 def main(args):
     wordcloud = wc.WordCloud(stopwords=args.stopwords, mask=args.mask,
@@ -29,6 +31,8 @@ def parse_args(arguments):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--text', metavar='file', type=argparse.FileType(), default='-',
         help='specify file of words to build the word cloud (default: stdin)')
+    parser.add_argument('--texturl', metavar='texturl', type=str, default='',
+        help='specify url of words to build the word cloud')
     parser.add_argument('--stopwords', metavar='file', type=argparse.FileType(),
         help='specify file of stopwords (containing one word per line) to remove from the given text after parsing')
     parser.add_argument('--imagefile', metavar='file', type=argparse.FileType('w'), default='-',
@@ -56,8 +60,15 @@ def parse_args(arguments):
     if args.colormask and args.color:
         raise ValueError('specify either a color mask or a color function')
 
-    with args.text:
-        args.text = args.text.read()
+    if args.texturl:
+        response = urllib2.urlopen(args.texturl)
+        html = response.read()
+        args.text = re.sub('<[^<]+?>', '', html)
+    else:
+        with args.text:
+            args.text = args.text.read()
+
+    print args.text
 
     if args.stopwords:
         with args.stopwords:
